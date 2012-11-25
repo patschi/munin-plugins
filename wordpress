@@ -31,9 +31,10 @@ error_reporting(E_ALL & ~E_NOTICE);
  ---- More details ----
  @Author...: Patrik Kernstock
  @Version..: v1.0
- @Date.....: 24 November 2012
+ @Date.....: 25 November 2012
  @Web......: http://pkern.at
  @Support..: support@pkern.at
+ @GitHub...: https://github.com/patschi/munin-plugins
 
 */
 #%# family=auto
