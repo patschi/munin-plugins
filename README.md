@@ -13,4 +13,4 @@ To install any plugin, you need to put it in your default munin-plugins director
 
 # wordpress
 Monitors your wordpress installation with: users, posts, comments and pingbacks.
-![Screenshot][https://munin.pkern.at/pkern.at/s1.pkern.at/wordpress_pkern_at-day.png "Screenshot")
+![Screenshot](https://munin.pkern.at/pkern.at/s1.pkern.at/wordpress_pkern_at-day.png "Screenshot")
