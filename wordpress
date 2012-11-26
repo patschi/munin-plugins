@@ -1,6 +1,6 @@
 #!/usr/bin/php
 <?php
-error_reporting(E_ALL & ~E_NOTICE);
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 /*
  ---- DESCRIPTION ----
  wordpress plugin for munin
@@ -27,25 +27,48 @@ error_reporting(E_ALL & ~E_NOTICE);
  env.NAME Blog of Chuck Norris
  env.CONF /var/www/wordpress/wp-config.php
 
+ or you can use:
+
+ [wordpress]
+ env.NAME Blog of Chuck Norris
+ env.HOST 127.0.0.1
+ env.USER blog
+ env.PASS password
+ env.DBNM wordpress
+ env.TBPF wp_
+
 
  ---- More details ----
  @Author...: Patrik Kernstock
- @Version..: v1.0
- @Date.....: 25 November 2012
+ @Version..: v1.1
+ @Date.....: 26 November 2012
  @Web......: http://pkern.at
  @Support..: support@pkern.at
  @GitHub...: https://github.com/patschi/munin-plugins
+ @License..: http://creativecommons.org/licenses/by-nc-sa/3.0/
 
 */
 #%# family=auto
 #%# capabilities=autoconf
 
 // Get configuration variables
-$name = getenv("NAME");
-$conf = getenv("CONF");
+$d["name"] = getenv("NAME");
+$d["conf"] = getenv("CONF");
+$d["host"] = getenv("HOST");
+$d["user"] = getenv("USER");
+$d["pass"] = getenv("PASS");
+$d["tbpf"] = getenv("TBPF");
+$d["dbnm"] = getenv("DBNM");
 
-if(empty($name) || empty($conf)) {
-	echo "Error: One of the two variables are not set. (NAME, CONF)\n";
+if(!empty($d["conf"]) && !empty($d["name"])) {
+	// INCLUDE wp-config.php
+	define("ABSPATH", str_replace("wp-config.php", "", $d["conf"]));
+	require_once($d["conf"]);
+	$d["host"] = DB_HOST;
+	$d["user"] = DB_USER;
+	$d["pass"] = DB_PASSWORD;
+	$d["dbnm"] = DB_NAME;
+	$d["tbpf"] = $table_prefix;
 }
 
 // In which category it should be displayed
@@ -74,14 +97,12 @@ if($argv[1] == "config") {
 	}
 }
 
-if(!file_exists($conf)) {
-	echo "Error: config does not exist!";
-	exit(1);
+if(!empty($d["conf"])) {
+	if(!file_exists($d["conf"])) {
+		echo "Error: config does not exist!";
+		exit(1);
+	}
 }
-
-// INCLUDE wp-config.php
-define("ABSPATH", str_replace("wp-config.php", "", $conf));
-require_once($conf);
 
 // INIT VARIABLES
 $users     = 0;
@@ -90,13 +111,13 @@ $comments  = 0;
 $pingbacks = 0;
 
 // GET DATA
-mysql_connect(DB_HOST, DB_USER, DB_PASSWORD);
-mysql_select_db(DB_NAME);
+mysql_connect($d["host"], $d["user"], $d["pass"]) or die("Error: Failed to connect to the MySQL database!");
+mysql_select_db($d["dbnm"]) or die("Error: Failed to select database!");
 
-$users     = mysql_result(mysql_query("SELECT COUNT(*) FROM ".$table_prefix."users;"), 0);
-$posts     = mysql_result(mysql_query("SELECT COUNT(*) FROM ".$table_prefix."posts    WHERE post_status='publish' AND post_password='' AND post_type='post';"), 0);
-$comments  = mysql_result(mysql_query("SELECT COUNT(*) FROM ".$table_prefix."comments WHERE comment_approved='1' AND comment_type='';"), 0);
-$pingbacks = mysql_result(mysql_query("SELECT COUNT(*) FROM ".$table_prefix."comments WHERE comment_approved='1' AND comment_type='pingback';"), 0);
+$users     = mysql_result(mysql_query("SELECT COUNT(*) FROM ".$d["tbpf"]."users;"), 0);
+$posts     = mysql_result(mysql_query("SELECT COUNT(*) FROM ".$d["tbpf"]."posts    WHERE post_status='publish' AND post_password='' AND post_type='post';"), 0);
+$comments  = mysql_result(mysql_query("SELECT COUNT(*) FROM ".$d["tbpf"]."comments WHERE comment_approved='1' AND comment_type='';"), 0);
+$pingbacks = mysql_result(mysql_query("SELECT COUNT(*) FROM ".$d["tbpf"]."comments WHERE comment_approved='1' AND comment_type='pingback';"), 0);
 
 // OUTPUT DATA
 echo     "users.value ".$users    ."\n";
