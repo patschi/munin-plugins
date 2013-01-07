@@ -88,7 +88,7 @@ if($argv[1] == "config") {
     exit(0);
 
 }else if($argv[1] == "autoconf") {
-	if(file_exists($conf)) {
+	if(file_exists($d["conf"])) {
 		echo "yes";
 		exit(0);
 	 }else{
